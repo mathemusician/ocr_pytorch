@@ -35,10 +35,10 @@ def resize(image, width=None, height=None, inter=cv2.INTER_AREA):
         dim = (width, int(h * r))
 
     # resize the image
-    resized = cv2.resize(image, dim, interpolation=inter)
+    # resized = cv2.resize(image, dim, interpolation=inter)
 
     # return the resized image
-    return resized
+    return image
 
 
 def gen_anchor(featuresize, scale):
@@ -224,11 +224,7 @@ def cal_rpn(imgsize, featuresize, scale, gtboxes):
                 np.random.choice(bg_index, len(bg_index) - num_bg, replace=False)
             ] = -1
 
-    # calculate bbox targets
-    # debug here
     bbox_targets = bbox_transfrom(base_anchor, gtboxes[anchor_argmax_overlaps, :])
-    # bbox_targets=[]
-    # print(len(labels),len(bbox_targets),len(base_anchor),base_anchor[0],labels[0])
 
     return [labels, bbox_targets], base_anchor
 

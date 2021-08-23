@@ -37,3 +37,7 @@
 *.bak
 *.pyc
 **/lightning_logs
+.vscode
+*.txt
+*.ckpt
+!requirements.txt

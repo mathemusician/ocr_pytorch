@@ -1,14 +1,8 @@
 import keys
 
-train_infofile = "data_set/infofile_train_10w.txt"
-train_infofile_fullimg = ""
-val_infofile = "data_set/infofile_test.txt"
-alphabet = keys.alphabet
-alphabet_v2 = keys.alphabet_v2
-workers = 4
-batchSize = 50
+alphabet = keys.alphabet_v2
 imgH = 32
-imgW = 280
+imgW = 800
 nc = 1
 nclass = len(alphabet) + 1
 nh = 256
@@ -17,18 +11,28 @@ lr = 0.0003
 beta1 = 0.5
 cuda = True
 ngpu = 1
-pretrained_model = ""
 saved_model_dir = "crnn_models"
-saved_model_prefix = "CRNN-"
-use_log = False
 remove_blank = False
+
+
+saved_model_prefix = "CRNN-1010"
+train_infofile = ["/Users/mosaicchurchhtx/Desktop/ocr_pytorch/text_file.txt"]
+val_infofile = "path_to_test_infofile.txt"
+keep_ratio = True
+use_log = True
+pretrained_model = "/Users/mosaicchurchhtx/Desktop/CRNN-1010.pth"
+batchSize = 9  # make 80 if gpu
+workers = 0  # make 10 if gpu
+adam = True
+
 
 experiment = None
 displayInterval = 500
-n_test_disp = 10
+n_test_disp = 9
 valInterval = 500
 saveInterval = 500
-adam = False
 adadelta = False
-keep_ratio = False
 random_sample = True
+
+
+max_epochs = 10

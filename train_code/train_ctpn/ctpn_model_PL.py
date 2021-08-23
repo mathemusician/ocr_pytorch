@@ -12,8 +12,13 @@ import torchvision.models as models
 import config
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import Callback
+from ctpn_predict import get_det_boxes
 from torch import optim
-
+from torchvision import transforms
+import torchvision
+from PIL import Image, ImageDraw
+import numpy as np
+import cv2
 
 
 class RPN_REGR_Loss(nn.Module):
@@ -54,8 +59,6 @@ class RPN_CLS_Loss(nn.Module):
     def __init__(self):
         super().__init__()
         self.L_cls = nn.CrossEntropyLoss(reduction="none")
-        # self.L_regr = nn.SmoothL1Loss()
-        # self.L_refi = nn.SmoothL1Loss()
         self.pos_neg_ratio = 3
 
     def forward(self, input, target):
@@ -63,8 +66,6 @@ class RPN_CLS_Loss(nn.Module):
             cls_gt = target[0][0]
             num_pos = 0
             loss_pos_sum = 0
-
-            # print(len((cls_gt == 0).nonzero()),len((cls_gt == 1).nonzero()))
 
             if len((cls_gt == 1).nonzero()) != 0:  # avoid num of pos sample is 0
                 cls_pos = (cls_gt == 1).nonzero()[:, 0]
@@ -94,7 +95,6 @@ class RPN_CLS_Loss(nn.Module):
             loss = F.nll_loss(
                 F.log_softmax(cls_pred, dim=-1), cls_true
             )  # original is sparse_softmax_cross_entropy_with_logits
-            # loss = nn.BCEWithLogitsLoss()(cls_pred[:,0], cls_true.float())  # 18-12-8
             loss = (
                 torch.clamp(torch.mean(loss), 0, 10)
                 if loss.numel() > 0
@@ -145,12 +145,11 @@ class basic_conv(nn.Module):
         return x
 
 
-
 class LoadCheckpoint(Callback):
     def __init__(self, checkpoint_path):
         super().__init__()
         self.checkpoint_path = checkpoint_path
-    
+
     def using_gpu(self):
         # torch.cuda.is_available() fails on MAC
         try:
@@ -172,17 +171,22 @@ class LoadCheckpoint(Callback):
         # load checkpoint if checkpoint is found
         if os.path.isfile(self.checkpoint_path):
             device = torch.device("cuda:0" if self.using_gpu() else "cpu")
-            pl_module.load_state_dict(torch.load(self.checkpoint_path, map_location=device)["model_state_dict"])
+            pl_module.load_state_dict(
+                torch.load(self.checkpoint_path, map_location=device)[
+                    "model_state_dict"
+                ]
+            )
             pl_module.to(device)
             pl_module.eval()
         else:
-            print('checkpoint not found, skipping checkpoint load step')
+            print("checkpoint not found, skipping checkpoint load step")
 
 
 class InitializeWeights(Callback):
     """
     Initialize weights before training starts
     """
+
     def weights_init(self, m):
         classname = m.__class__.__name__
         if classname.find("Conv") != -1:
@@ -199,6 +203,7 @@ class LossAndCheckpointCallback(Callback):
     """
     Logs epoch loss and such
     """
+
     def __init__(self, cfg, len_dataset):
         super().__init__()
         self.cfg = cfg
@@ -210,22 +215,25 @@ class LossAndCheckpointCallback(Callback):
     def save_checkpoint(self, state, epoch, loss_cls, loss_regr, loss, ext="pth"):
         check_path = os.path.join(
             config.checkpoints_dir,
-            f"v3_ctpn_ep{epoch:02d}_" f"{loss_cls:.4f}_{loss_regr:.4f}_{loss:.4f}.{ext}",
+            f"v3_ctpn_ep{epoch:02d}_"
+            f"{loss_cls:.4f}_{loss_regr:.4f}_{loss:.4f}.{ext}",
         )
 
         try:
             torch.save(state, check_path)
         except BaseException as e:
             print(e)
-            print("fail to save to {}".format(check_path))
+            print("failed to save checkpoint to {}".format(check_path))
+
         print("saving to {}".format(check_path))
-    
+
     def on_epoch_start(self, trainer, pl_module):
         pl_module.epoch_loss_cls = 0
         pl_module.epoch_loss_regr = 0
         pl_module.epoch_loss = 0
 
-    def on_epoch_end(self, trainer:pl.Trainer, pl_module:pl.LightningModule):
+    def on_epoch_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule):
+        epoch_size = pl_module.config.batch_size
         epoch_loss_cls = pl_module.epoch_loss_cls
         epoch_loss_regr = pl_module.epoch_loss_regr
         epoch_loss = pl_module.epoch_loss
@@ -237,15 +245,13 @@ class LossAndCheckpointCallback(Callback):
 
         # log epoch loss
         dict_ = {
-                "epoch_loss_cls": epoch_loss_cls,
-                "epoch_loss_regr": epoch_loss_regr,
-                "epoch_loss": epoch_loss,
+            "epoch_loss_cls": epoch_loss_cls,
+            "epoch_loss_regr": epoch_loss_regr,
+            "epoch_loss": epoch_loss,
         }
-        self.log_dict(
-            dict_, on_step=False, on_epoch=True, prog_bar=True, logger=True
-        )
+        self.log_dict(dict_, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
-        # save checkpoint
+        # save checkpoint loss is better than before
         if (
             self.best_loss_cls > epoch_loss_cls
             or self.best_loss_regr > epoch_loss_regr
@@ -254,12 +260,9 @@ class LossAndCheckpointCallback(Callback):
             self.best_loss = epoch_loss
             self.best_loss_regr = epoch_loss_regr
             self.best_loss_cls = epoch_loss_cls
-            
+
             self.save_checkpoint(
-                {
-                    "model_state_dict": pl_module.state_dict(),
-                    "epoch": epoch
-                },
+                {"model_state_dict": pl_module.state_dict(), "epoch": epoch},
                 epoch,
                 self.best_loss_cls,
                 self.best_loss_regr,
@@ -268,8 +271,9 @@ class LossAndCheckpointCallback(Callback):
 
 
 class CTPN_Model(pl.LightningModule):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
+        self.config = config
         base_model = models.vgg16(pretrained=False)
         layers = list(base_model.features)[:-1]
         self.base_layers = nn.Sequential(*layers)  # block5_conv3 output
@@ -280,8 +284,8 @@ class CTPN_Model(pl.LightningModule):
         self.rpn_regress = basic_conv(512, 10 * 2, 1, 1, relu=False, bn=False)
 
         # loss classes
-        self.critetion_cls = RPN_CLS_Loss()
-        self.critetion_regr = RPN_REGR_Loss()
+        self.criterion_cls = RPN_CLS_Loss()  # for classifying which language
+        self.criterion_regr = RPN_REGR_Loss()  # for predicting bounding boxes for text
 
         # loss
         self.epoch_loss_cls = 0
@@ -317,25 +321,23 @@ class CTPN_Model(pl.LightningModule):
 
         return cls, regr
 
-    def training_step(self, batch, batch_idx):
+    def shared_step(self, batch, batch_idx):
         imgs, clss, regrs = batch
-        
+
         cls, regr = self(imgs)
 
         # compute losses
-        loss_cls = self.critetion_cls(cls, clss)
-        loss_regr = self.critetion_regr(regr, regrs)
+        loss_cls = self.criterion_cls(cls, clss)
+        loss_regr = self.criterion_regr(regr, regrs)
         loss = loss_cls + loss_regr
 
         # log batch loss
         dict_ = {
-                "batch_loss_cls": loss_cls,
-                "batch_loss_regr": loss_regr,
-                "batch_loss": loss,
+            "batch_loss_cls": loss_cls,
+            "batch_loss_regr": loss_regr,
+            "batch_loss": loss,
         }
-        self.log_dict(
-            dict_, on_step=True, on_epoch=True, prog_bar=True, logger=True
-        )
+        self.log_dict(dict_, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
         # update epoch loss
         self.epoch_loss_cls += loss_cls
@@ -344,10 +346,47 @@ class CTPN_Model(pl.LightningModule):
 
         return loss
 
+    def training_step(self, batch, batch_idx):
+        return self.shared_step(batch, batch_idx)
+
+    def validation_step(self, batch, batch_idx):
+        # visualize bounding boxes and text
+
+        resize_dim, img_path, images, real_cls, real_regr = batch
+
+        pred_cls, pred_regr = self(images)
+
+        # visualize data
+        grid = []
+
+        to_tensor = transforms.ToTensor()
+
+        for i in range(self.config.batch_size):
+            w, h = resize_dim
+            w = w.item()
+            h = h.item()
+            img_copy = np.array(Image.open(img_path[0]).resize((w, h)))
+            text_recs, img_framed, images = get_det_boxes(img_copy, pred_cls, pred_regr)
+
+            tensor = torch.stack([to_tensor(img_framed)])
+            # tensor = (tensor + 1) / 2
+            grid.append(tensor)
+
+        # combine images to one image
+        grid = torchvision.utils.make_grid(torch.cat(grid, 0), 1)
+
+        self.logger.experiment.add_image(
+            "image --> predicted text", grid, self.current_epoch, dataformats="CHW"
+        )
+
+        return
+
+    def test_step(self, batch, batch_idx):
+        return self.shared_step(batch, batch_idx)
+
     def configure_optimizers(self):
         # optimizer
         optimizer = optim.SGD(self.parameters(), lr=1e-3, momentum=0.9)
         # scheduler
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
         return [optimizer], [scheduler]
-        
