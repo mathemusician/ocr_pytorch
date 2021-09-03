@@ -51,6 +51,9 @@ def inverse_color(image):
 
 
 def data_tf(img):
+    """
+    transforms data by cropping, contrast, brightness, color, sharpness, and more
+    """
     img = crop.process(img)
     img = random_contrast.process(img)
     img = random_brightness.process(img)
@@ -128,6 +131,13 @@ class alignCollate(object):
 
 
 class MyDataset(Dataset):
+    """
+    This dataset reads data from a text file
+
+    text file contains:
+
+
+    """
     def __init__(
         self,
         info_filename,
@@ -146,8 +156,8 @@ class MyDataset(Dataset):
         if isinstance(self.info_filename, str):
             self.info_filename = [self.info_filename]
         self.train = train
-        self.files = list()
-        self.labels = list()
+        self.files = []
+        self.labels = []
         for info_name in self.info_filename:
 
             with open(info_name) as f:

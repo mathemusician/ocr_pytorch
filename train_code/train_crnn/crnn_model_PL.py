@@ -1,7 +1,7 @@
 from pytorch_lightning.callbacks import Callback
+from pathed import filedir, importfile
 from collections import OrderedDict
 from torch.autograd import Variable
-from utils import strLabelConverter
 from torchvision import transforms
 from PIL import Image, ImageDraw
 import pytorch_lightning as pl
@@ -12,6 +12,8 @@ import numpy as np
 import torchvision
 import torch
 import os
+
+strLabelConverter = importfile(filedir / "utils.py").strLabelConverter
 
 
 class BidirectionalLSTM(nn.Module):

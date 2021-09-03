@@ -8,11 +8,26 @@ import torchvision.transforms as transforms
 from torch.autograd import Variable
 import numpy as np
 import random
-from crnn import CRNN
-import config
+from .crnn_model_PL import CRNN
+
+try:
+    import config
+except Exception:
+    from train_code.train_crnn import config
 
 # copy from mydataset
 class resizeNormalize(object):
+    """
+    Args:
+        size (sequence or int): Desired output size. If size is a sequence like
+            (h, w), output size will be matched to this. If size is an int,
+            smaller edge of the image will be matched to this number.
+            i.e, if height > width, then image will be rescaled to
+            (size * height / width, size)
+        interpolation (Any): Desired interpolation. Default is
+            PIL.Image.LANCZOS
+    """
+
     def __init__(self, size, interpolation=Image.LANCZOS, is_test=True):
         self.size = size
         self.interpolation = interpolation
@@ -43,6 +58,15 @@ class resizeNormalize(object):
 
 # copy from utils
 class strLabelConverter(object):
+    """
+    This class does the following:
+    1. Takes in a dictionary to map each character in the alphabet to a unique index.
+    2. The encode method takes a string and returns a PyTorch tensor of the corresponding
+       indices of the characters in the string.
+    3. The decode method takes a PyTorch tensor of the indices of the characters and
+       returns a string corresponding to it.
+    """
+
     def __init__(self, alphabet, ignore_case=False):
         self._ignore_case = ignore_case
         if self._ignore_case:
@@ -106,22 +130,14 @@ class strLabelConverter(object):
 
 # recognize api
 class PytorchOcr:
-    def __init__(self, model_path):
+    def __init__(self, model_path=config.pretrained_model):
         alphabet_unicode = config.alphabet_v2
         self.alphabet = "".join([chr(uni) for uni in alphabet_unicode])
         # print(len(self.alphabet))
         self.nclass = len(self.alphabet) + 1
-        self.model = CRNN(config.imgH, 1, self.nclass, 256)
+        self.model = CRNN(config, config.imgH, 1, self.nclass, 256)
         self.cuda = False
-        if torch.cuda.is_available():
-            self.cuda = True
-            self.model.cuda()
-            self.model.load_state_dict(
-                {k.replace("module.", ""): v for k, v in torch.load(model_path).items()}
-            )
-        else:
-            # self.model = nn.DataParallel(self.model)
-            self.model.load_state_dict(torch.load(model_path, map_location="cpu"))
+        self.model.load_state_dict(torch.load(model_path, map_location="cpu"))
         self.model.eval()
         self.converter = strLabelConverter(self.alphabet)
 
@@ -150,10 +166,4 @@ class PytorchOcr:
 
 
 if __name__ == "__main__":
-    model_path = "./crnn_models/CRNN-1008.pth"
-    recognizer = PytorchOcr(model_path)
-    img_name = "t1.jpg"
-    img = cv2.imread(img_name)
-    h, w = img.shape[:2]
-    res = recognizer.recognize(img)
-    print(res)
+    pass

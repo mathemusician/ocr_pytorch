@@ -8,11 +8,12 @@ x1,y1,x2,y2,x3,y3,x4,y4, script_language, transcription
 
 
 import os
-from crnn_data_PL import MyDataModule, resizeNormalize
-from crnn_model_PL import CRNN, InitializeWeights, LoadCheckpoint
 import config
+from pathed import filedir
 import pytorch_lightning as pl
+from crnn_data_PL import MyDataModule, resizeNormalize
 from pytorch_lightning.callbacks import ModelCheckpoint
+from crnn_model_PL import CRNN, InitializeWeights, LoadCheckpoint
 
 
 def train():
@@ -28,7 +29,7 @@ def train():
     )
 
     # load checkpoint if it exists
-
+    desktop = filedir / ".." / ".." / ".."
     trainer = pl.Trainer(
         gpus=0,
         max_epochs=config.max_epochs,
@@ -37,7 +38,7 @@ def train():
             InitializeWeights(),
             LoadCheckpoint(config.pretrained_model),
             ModelCheckpoint(
-                dirpath="/Users/mosaicchurchhtx/Desktop/ocr_pytorch/",
+                dirpath=str(desktop / "ocr_pytorch"),
                 monitor="batch_loss",
             ),
         ],
