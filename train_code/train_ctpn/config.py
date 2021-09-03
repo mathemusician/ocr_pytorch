@@ -14,6 +14,7 @@ base_dir = filedir / ".." / ".."
 icdar17_mlt_img_dir = base_dir / "train"
 icdar17_mlt_gt_dir = base_dir / "train_gt"
 num_workers = 0  # change to 2 when on GPU
+num_gpus = 1 # change to 0 when on CPU
 pretrained_weights = base_dir / "checkpoints" / "CTPN.pth"
 batch_size = 1
 

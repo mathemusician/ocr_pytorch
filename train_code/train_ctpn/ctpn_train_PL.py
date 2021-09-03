@@ -34,7 +34,7 @@ def train():
     model = CTPN_Model(config=config)
 
     trainer = pl.Trainer(
-        gpus=0,  # number of gpus, 0 if you want to use cpu
+        gpus=config.num_gpus,  # number of gpus, 0 if you want to use cpu
         max_epochs=config.max_epochs,
         log_every_n_steps=1,
         callbacks=[
