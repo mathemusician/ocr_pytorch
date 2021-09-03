@@ -18,7 +18,7 @@ Pull requests welcome!
 - opencv-4.5.2.52
 - numpy-1.21.1
 - Pillow-8.2.0
-- Paths-1.1.00
+- pathed-1.1.00
 
 
 ### Detection
