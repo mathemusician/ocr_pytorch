@@ -6,7 +6,7 @@ import torch
 import numpy as np
 import torch.nn.functional as F
 
-from .ctpn_utils import (
+from ctpn_utils import (
     gen_anchor,
     bbox_transfor_inv,
     clip_box,

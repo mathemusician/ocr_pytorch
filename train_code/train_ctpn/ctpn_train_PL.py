@@ -30,7 +30,8 @@ def train():
     trainer = pl.Trainer(
         gpus=config.num_gpus,  # number of gpus, 0 if you want to use cpu
         max_epochs=config.max_epochs,
-        log_every_n_steps=1,
+        progress_bar_refresh_rate=1,
+        #log_every_n_steps=1,
         callbacks=[
             LoadCheckpoint(config.pretrained_weights),
             InitializeWeights(),

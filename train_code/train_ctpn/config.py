@@ -1,15 +1,16 @@
 import os
-from pathed import filedir
+from getpaths import Path
 
 # ocr_pytorch = 'path to ocr_pytorch'
-ocr_pytorch = filedir / ".." / ".."
+ocr_pytorch = Path() / ".." / ".."
 
 
-icdar17_mlt_img_dir = ocr_pytorch / "ctpn_data" / "train"
-icdar17_mlt_gt_dir = ocr_pytorch / "ctpn_data" / "train_gt"
+icdar17_mlt_img_dir = '/Users/mosaicchurchhtx/Desktop/ScriptReader/data/ctpn_data/train'#ocr_pytorch / "ctpn_data" / "train"
+icdar17_mlt_gt_dir = '/Users/mosaicchurchhtx/Desktop/ScriptReader/data/ctpn_data/train_gt'#ocr_pytorch / "ctpn_data" / "train_gt"
 num_workers = 0  # change to 2 when on GPU
 pretrained_weights = ocr_pytorch / "checkpoints" / "CTPN.pth"
 batch_size = 1
+num_gpus = 0
 
 max_epochs = 30  # change to 30 when on GPU
 anchor_scale = 16

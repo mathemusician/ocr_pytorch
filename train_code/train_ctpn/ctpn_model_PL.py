@@ -362,17 +362,24 @@ class CTPN_Model(pl.LightningModule):
         self.log_dict(dict_, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
         # update epoch loss
-        self.epoch_loss_cls += loss_cls
-        self.epoch_loss_regr += loss_regr
-        self.epoch_loss += loss
+        self.epoch_loss_cls += loss_cls.item()
+        self.epoch_loss_regr += loss_regr.item()
+        self.epoch_loss += loss.item()
 
         return loss
 
     def training_step(self, batch, batch_idx):
         return self.shared_step(batch, batch_idx)
 
-    def load_checkpoint(self, checkpoint_path=None):
-        # grab checkpoint where it normally is
+    def load_checkpoint(self, checkpoint_path=None, eval=False):
+        """
+        Parameters:
+            checkpoint_path: str
+            eval: bool
+
+        if checkpoint path is not given, it will get it from config
+        if eval == True, it will run model.eval()
+        """
         if checkpoint_path == None:
             checkpoint_path = self.config.pretrained_weights
 
@@ -383,11 +390,13 @@ class CTPN_Model(pl.LightningModule):
                     torch.load(checkpoint_path, map_location=device)["model_state_dict"]
                 )
                 self.to(device)
-                # self.eval()
             else:
                 print("checkpoint not found, skipping checkpoint load step")
         except:
             self.load_from_checkpoint(checkpoint_path=checkpoint_path)
+
+        if eval == True:
+            self.eval()
 
     def get_det_boxes(self, image, cls=None, regr=None, display=True, expand=True):
         """
@@ -508,7 +517,11 @@ class CTPN_Model(pl.LightningModule):
 
     def configure_optimizers(self):
         # optimizer
-        optimizer = optim.SGD(self.parameters(), lr=1e-3, momentum=0.9)
+        optimizer = optim.SGD(filter(lambda p: p.requires_grad, self.parameters()), lr=1e-3, momentum=0.9)
         # scheduler
-        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-        return [optimizer], [scheduler]
+        scheduler = None
+        # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+        if scheduler == None:
+            return optimizer
+        else:
+            return [optimizer], [scheduler]
