@@ -43,3 +43,7 @@
 !requirements.txt
 checkpoints
 !checkpoints/README.md
+!test_images/README.md
+!test_result/README.md
+test_images
+test_result

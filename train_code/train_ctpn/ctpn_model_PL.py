@@ -376,15 +376,18 @@ class CTPN_Model(pl.LightningModule):
         if checkpoint_path == None:
             checkpoint_path = self.config.pretrained_weights
 
-        if os.path.isfile(checkpoint_path):
-            device = torch.device("cuda:0" if using_gpu() else "cpu")
-            self.load_state_dict(
-                torch.load(checkpoint_path, map_location=device)["model_state_dict"]
-            )
-            self.to(device)
-            self.eval()
-        else:
-            print("checkpoint not found, skipping checkpoint load step")
+        try:
+            if os.path.isfile(checkpoint_path):
+                device = torch.device("cuda:0" if using_gpu() else "cpu")
+                self.load_state_dict(
+                    torch.load(checkpoint_path, map_location=device)["model_state_dict"]
+                )
+                self.to(device)
+                # self.eval()
+            else:
+                print("checkpoint not found, skipping checkpoint load step")
+        except:
+            self.load_from_checkpoint(checkpoint_path=checkpoint_path)
 
     def get_det_boxes(self, image, cls=None, regr=None, display=True, expand=True):
         """

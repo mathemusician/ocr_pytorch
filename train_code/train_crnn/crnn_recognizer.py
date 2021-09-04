@@ -131,7 +131,7 @@ class strLabelConverter(object):
 # recognize api
 class PytorchOcr:
     def __init__(self, model_path=config.pretrained_model):
-        alphabet_unicode = config.alphabet_v2
+        alphabet_unicode = config.alphabet
         self.alphabet = "".join([chr(uni) for uni in alphabet_unicode])
         # print(len(self.alphabet))
         self.nclass = len(self.alphabet) + 1
