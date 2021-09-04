@@ -1,16 +1,11 @@
 # -*- coding:utf-8 -*-
-#'''
-# Created on 18-12-11 上午10:03
-#
-# @Author: Greg Gao(laygin)
-#'''
+
 import os
-
 import cv2
-import numpy as np
-
 import torch
+import numpy as np
 import torch.nn.functional as F
+
 from .ctpn_utils import (
     gen_anchor,
     bbox_transfor_inv,
@@ -25,10 +20,6 @@ try:
     import config
 except Exception:
     from train_code.train_ctpn import config
-
-
-prob_thresh = 0.5
-height = 720
 
 
 def using_gpu():
@@ -63,7 +54,7 @@ def get_det_boxes(image, cls=None, regr=None, display=True, expand=True):
     cls: confidence scores on bounding boxes
     regr: bounding boxes
     """
-    image = resize(image, height=height)
+    image = resize(image, height=config.height)
     image_r = image.copy()
     image_c = image.copy()
     h, w = image.shape[:2]
@@ -78,7 +69,7 @@ def get_det_boxes(image, cls=None, regr=None, display=True, expand=True):
         bbox = bbox_transfor_inv(anchor, regr)
         bbox = clip_box(bbox, [h, w])
 
-        fg = np.where(cls_prob[0, :, 1] > prob_thresh)[0]
+        fg = np.where(cls_prob[0, :, 1] > config.prob_thresh)[0]
         select_anchor = bbox[fg, :]
         select_score = cls_prob[0, fg, 1]
         select_anchor = select_anchor.astype(np.int32)

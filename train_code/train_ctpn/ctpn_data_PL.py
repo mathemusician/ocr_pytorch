@@ -1,9 +1,4 @@
 # -*- coding:utf-8 -*-
-#'''
-# Created on 18-12-27 上午10:34
-#
-# @Author: Greg Gao(laygin)
-#'''
 
 import os
 import xml.etree.ElementTree as ET

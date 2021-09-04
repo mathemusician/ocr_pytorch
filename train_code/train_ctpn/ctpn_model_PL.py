@@ -1,9 +1,5 @@
 # -*- coding:utf-8 -*-
-#'''
-# Created on 18-12-11 上午10:01
-#
-# @Author: Greg Gao(laygin)
-#'''
+
 import os
 import torch
 import torch.nn as nn
@@ -250,12 +246,12 @@ class LossAndCheckpointCallback(Callback):
 
         print("saving to {}".format(check_path))
 
-    def on_epoch_start(self, trainer, pl_module):
+    def on_fit_start(self, trainer, pl_module):
         pl_module.epoch_loss_cls = 0
         pl_module.epoch_loss_regr = 0
         pl_module.epoch_loss = 0
 
-    def on_epoch_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule):
+    def on_fit_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule):
         epoch_size = pl_module.config.batch_size
         epoch_loss_cls = pl_module.epoch_loss_cls
         epoch_loss_regr = pl_module.epoch_loss_regr
