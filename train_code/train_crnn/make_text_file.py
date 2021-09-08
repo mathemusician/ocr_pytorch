@@ -1,5 +1,13 @@
+"""
 
+text_file.txt contains file_paths to images and the correseponding text. It looks like this:
 
+/absolute/path/to/image_1.jpg\tword_in_image_1
+/absolute/path/to/image_2.jpg\tword_in_image_2
+...
+
+you will have to modify this to fit your dataset
+"""
 
 from pathed import Path
 import os
