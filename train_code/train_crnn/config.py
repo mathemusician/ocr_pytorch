@@ -1,7 +1,7 @@
 from getpaths import getpath
 import pickle as pkl
 
-alphabet_list = pkl.load(open(getpath() / "alphabet.pkl", "rb"))
+alphabet_list = pkl.load(open(getpath() / '..' / 'train_crnn' / "alphabet.pkl", "rb"))
 alphabet = [ord(ch) for ch in alphabet_list]
 
 alphabet = alphabet

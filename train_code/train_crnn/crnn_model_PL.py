@@ -14,7 +14,7 @@ import torch
 import os
 
 from getpaths import getpath
-strLabelConverter = importfile(getpath() / "utils.py").strLabelConverter
+strLabelConverter = importfile(getpath() / '..' / 'train_crnn' / "utils.py").strLabelConverter
 
 
 class BidirectionalLSTM(nn.Module):
@@ -81,7 +81,7 @@ class LoadCheckpoint(Callback):
                 torch.load(self.checkpoint_path, map_location="cpu")
             )
             pl_module.to(device)
-            pl_module.eval()
+            # pl_module.eval()
         else:
             print("checkpoint not found, skipping checkpoint load step")
 
