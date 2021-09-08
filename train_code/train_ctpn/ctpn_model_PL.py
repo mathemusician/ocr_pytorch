@@ -196,7 +196,6 @@ class LoadCheckpoint(Callback):
                 ]
             )
             pl_module.to(device)
-            pl_module.eval()
         else:
             print("checkpoint not found, skipping checkpoint load step")
 
