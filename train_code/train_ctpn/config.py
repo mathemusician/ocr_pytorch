@@ -1,8 +1,8 @@
 import os
-from getpaths import getpath
+from pathed import filedir
 
 # ocr_pytorch = 'path to ocr_pytorch'
-ocr_pytorch = getpath() / ".." / ".."
+ocr_pytorch = filedir / ".." / ".."
 
 
 icdar17_mlt_img_dir = '/Users/mosaicchurchhtx/Desktop/ScriptReader/data/ctpn_data/train'#ocr_pytorch / "ctpn_data" / "train"

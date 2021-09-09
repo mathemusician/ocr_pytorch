@@ -4,9 +4,9 @@ import pickle as pkl
 project_directory = filedir / ".." / ".."
 
 # change paths for custom training
-image_dir = "/Users/mosaicchurchhtx/Desktop/ScriptReader/data/parsed"
+image_dir = "/content/crnn_data"
 pretrained_model = project_directory / "checkpoints" / "CRNN-1010.pth"
-font_path = "/Users/mosaicchurchhtx/Desktop/ScriptReader/learning/text_renderer/workspace/font/rgreekl21.ttf" # None or path to font file
+font_path = "/content/rgreekl21.ttf" # None or path to font file
 
 
 train_infofile = project_directory / "train_code" / "train_crnn" / "text_file.txt"

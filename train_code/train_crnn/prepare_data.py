@@ -1,6 +1,7 @@
 """
 
-This 1) converts image files to a list of text files and 2) transfers their characters to a pickled file.
+1) convert image files to text file
+2) transfer characters from text file to pickled file
 
 """
 
