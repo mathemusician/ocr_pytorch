@@ -87,14 +87,14 @@ class LoadCheckpoint(Callback):
 
 
 class CRNN(pl.LightningModule):
-    def __init__(self, config, imgH, nc, nclass, nh, leakyRelu=False):
+    def __init__(self, config, imgH, color_model, nclass, nh, leakyRelu=False):
         super().__init__()
         self.config = config
 
         assert imgH % 16 == 0, "imgH has to be a multiple of 16"
 
         # 1x32x128
-        self.conv1 = nn.Conv2d(nc, 64, 3, 1, 1)
+        self.conv1 = nn.Conv2d(len(color_model), 64, 3, 1, 1)
         self.relu1 = nn.ReLU(True)
         self.pool1 = nn.MaxPool2d(2, 2)
 

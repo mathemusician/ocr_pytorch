@@ -47,3 +47,4 @@ checkpoints
 !test_result/README.md
 test_images
 test_result
+*custom_alphabet.pkl

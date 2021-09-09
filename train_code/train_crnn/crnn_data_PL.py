@@ -145,7 +145,7 @@ class MyDataset(Dataset):
         train=True,
         transform=data_tf,
         target_transform=None,
-        remove_blank=False,
+        remove_blank=config.remove_blank,
         val_step=False,
     ):
         super().__init__()
@@ -195,7 +195,7 @@ class MyDataset(Dataset):
         img = Image.open(self.files[index])
         if self.transform is not None:
             img = self.transform(img)
-        img = img.convert("L")
+        img = img.convert(self.config.color_model)
 
         label = self.labels[index]
         if self.target_transform is not None:

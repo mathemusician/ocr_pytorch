@@ -3,33 +3,32 @@ import pickle as pkl
 
 project_directory = filedir / ".." / ".."
 
+# change paths for custom training
+image_dir = ""
+train_infofile = [project_directory / "train_code" / "train_crnn" / "text_file.txt"]
+pretrained_model = project_directory / "checkpoints" / "CRNN-1010.pth"
 alphabet_list = pkl.load(open(filedir / '..' / 'train_crnn' / "alphabet.pkl", "rb"))
 alphabet = [ord(ch) for ch in alphabet_list]
 
-alphabet = alphabet
+max_epochs = 10
+batchSize = 20  # make 80 if gpu
+workers = 4  # make 10 if gpu
+gpus = 1
+
+self.config.color_model = "L" # grayscale
+
 imgH = 32
 imgW = 800
-nc = 1
 nclass = len(alphabet) + 1
 nh = 256
 niter = 100
 lr = 0.0003
 beta1 = 0.5
-cuda = True
-gpus = 1
-saved_model_dir = "crnn_models"
-remove_blank = False
+remove_blank = True # add spaces like this: " word " or no spaces like: "word"
 
-saved_model_prefix = "CRNN-1010"
-train_infofile = [project_directory / "train_code" / "train_crnn" / "text_file.txt"]
-val_infofile = "path_to_test_infofile.txt"
 keep_ratio = True
 use_log = True
-pretrained_model = project_directory / "checkpoints" / "CRNN-1010.pth"
-batchSize = 20  # make 80 if gpu
-workers = 4  # make 10 if gpu
 adam = True
-
 
 experiment = None
 displayInterval = 500
@@ -38,6 +37,3 @@ valInterval = 500
 saveInterval = 500
 adadelta = False
 random_sample = True
-
-
-max_epochs = 10

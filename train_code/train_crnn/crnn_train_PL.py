@@ -23,7 +23,7 @@ def train():
     model = CRNN(
         config=config,
         imgH=config.imgH,
-        nc=config.nc,
+        color_model=config.color_model,
         nclass=config.nclass,
         nh=config.nh,
     )
