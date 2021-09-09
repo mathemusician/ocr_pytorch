@@ -1,4 +1,5 @@
 """
+
 Data comes in in the form of images paired to text files that have:
 
 x1,y1,x2,y2,x3,y3,x4,y4, script_language, transcription
@@ -18,18 +19,13 @@ from crnn_model_PL import CRNN, InitializeWeights, LoadCheckpoint
 
 def train():
 
-    data = MyDataModule(config=config, info_filename=config.train_infofile)
+    data = MyDataModule(config=config)
 
-    model = CRNN(
-        config=config,
-        imgH=config.imgH,
-        color_model=config.color_model,
-        nclass=config.nclass,
-        nh=config.nh,
-    )
+    model = CRNN(config=config)
 
     # load checkpoint if it exists
     desktop = filedir / ".." / ".." / ".."
+    
     trainer = pl.Trainer(
         gpus=config.gpus,
         max_epochs=config.max_epochs,

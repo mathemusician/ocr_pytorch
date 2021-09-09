@@ -133,35 +133,33 @@ class alignCollate(object):
 class MyDataset(Dataset):
     """
     This dataset reads data from a text file
-
-    text file contains:
-
-
+    text file is made by prepare_dataset.py
     """
+
     def __init__(
         self,
-        info_filename,
         config,
         train=True,
         transform=data_tf,
         target_transform=None,
-        remove_blank=config.remove_blank,
+        remove_blank=None,
         val_step=False,
     ):
         super().__init__()
         self.config = config
         self.transform = transform
         self.target_transform = target_transform
-        self.info_filename = info_filename
-        
-        if isinstance(self.info_filename, str):
-            self.info_filename = [self.info_filename]
-        
+        self.train_infofile = config.train_infofile
+        self.remove_blank = config.remove_blank
+
+        if isinstance(self.train_infofile, str):
+            self.train_infofile = [self.train_infofile]
+
         self.train = train
         self.files = []
         self.labels = []
 
-        for info_name in self.info_filename:
+        for info_name in self.train_infofile:
 
             with open(info_name) as f:
                 content = f.readlines()
@@ -172,9 +170,12 @@ class MyDataset(Dataset):
                             print("abnormal text:", line)
                         fname, label = line.split(r"\t")
 
-                    else:
+                    elif "g:" in line:
                         fname, label = line.split("g:")
                         fname += "g"
+                    else:
+                        print("Unable to find image text")
+                        raise IndexError
 
                     if remove_blank:
                         label = label.strip()

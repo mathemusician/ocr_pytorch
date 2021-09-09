@@ -1,11 +1,12 @@
 from pytorch_lightning.callbacks import Callback
 from pathed import filedir, importfile, Path
+from PIL import Image, ImageDraw, ImageFont
 from collections import OrderedDict
 from torch.autograd import Variable
 from torchvision import transforms
-from PIL import Image, ImageDraw
 import pytorch_lightning as pl
 from torch.nn import CTCLoss
+from pathed import filedir
 from torch import optim
 import torch.nn as nn
 import numpy as np
@@ -13,14 +14,22 @@ import torchvision
 import torch
 import os
 
-from getpaths import getpath
-strLabelConverter = importfile(getpath() / '..' / 'train_crnn' / "utils.py").strLabelConverter
+config = importfile(
+    filedir / ".." / "train_crnn" / "config.py"
+)
+
+strLabelConverter = importfile(
+    filedir / ".." / "train_crnn" / "utils.py"
+).strLabelConverter
 
 
 class BidirectionalLSTM(nn.Module):
     def __init__(self, nIn, nHidden, nOut):
         super().__init__()
 
+        self.nIn = nIn
+        self.nHidden = nHidden
+        self.nOut = nOut
         self.rnn = nn.LSTM(nIn, nHidden, bidirectional=True)
         self.embedding = nn.Linear(nHidden * 2, nOut)
 
@@ -73,23 +82,54 @@ class LoadCheckpoint(Callback):
             # GPU is not being used!
             return False
 
-    def on_pretrain_routine_start(self, trainer, pl_module):
+    def on_fit_start(self, trainer, pl_module):
         # load checkpoint if checkpoint is found
         if os.path.isfile(self.checkpoint_path):
-            device = torch.device("cuda:0" if self.using_gpu() else "cpu")
-            pl_module.load_state_dict(
-                torch.load(self.checkpoint_path, map_location="cpu")
-            )
-            pl_module.to(device)
-            # pl_module.eval()
+            
+            try:
+                device = torch.device("cuda" if self.using_gpu() else "cpu")
+                data = torch.load(self.checkpoint_path, map_location=device)
+                nclass = data['rnn.1.embedding.bias'].shape[-1]
+            except:
+                nclass = config.nclass
+            
+            try:
+                pl_module.load_from_checkpoint(checkpoint_path=self.checkpoint_path)
+            except:
+                device = torch.device("cuda" if self.using_gpu() else "cpu")
+                
+                pl_module.load_state_dict(
+                    torch.load(self.checkpoint_path, map_location=device)
+                )
+
+                pl_module.to(device)
+        
         else:
             print("checkpoint not found, skipping checkpoint load step")
+        
+        # make sure final layer matches number of outputs
+        if nclass != config.nclass:
+            pl_module.rnn[-1] = BidirectionalLSTM(config.nh, config.nh, config.nclass)
+    
+    def on_pretrain_routine_start(self, trainer, pl_module):
+        print(print(pl_module.rnn[-1]))
+        
 
 
 class CRNN(pl.LightningModule):
-    def __init__(self, config, imgH, color_model, nclass, nh, leakyRelu=False):
+    def __init__(self, config):
         super().__init__()
         self.config = config
+
+        nh=config.nh
+        imgH=config.imgH
+        color_model=config.color_model
+        leakyRelu = config.leakyRelu
+        
+        if config.font_path != None:
+            self.font_path = ImageFont.truetype(config.font_path)
+        else:
+            self.font_path = None
 
         assert imgH % 16 == 0, "imgH has to be a multiple of 16"
 
@@ -126,7 +166,7 @@ class CRNN(pl.LightningModule):
 
         # 512x1x16
         self.rnn = nn.Sequential(
-            BidirectionalLSTM(512, nh, nh), BidirectionalLSTM(nh, nh, nclass)
+            BidirectionalLSTM(512, nh, nh), BidirectionalLSTM(nh, nh, 5835)
         )
 
         # encoder
@@ -208,7 +248,7 @@ class CRNN(pl.LightningModule):
         markdown_text = []
 
         to_image = transforms.ToTensor()
-
+        print([i for i in range(self.config.batchSize)])
         for i in range(self.config.batchSize):
 
             _, y, x = image[i].shape
@@ -217,7 +257,7 @@ class CRNN(pl.LightningModule):
             I1 = ImageDraw.Draw(new_image)
 
             # Add Text to an image
-            I1.text((0, 0), texts[i], fill=(255))
+            I1.text((0, 0), texts[i], fill=(255), font=self.font_path)
 
             tensor = torch.stack([image[i], to_image(new_image)])
             tensor = (tensor + 1) / 2

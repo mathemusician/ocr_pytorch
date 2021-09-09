@@ -12,7 +12,6 @@ from typing import Any
 from pathed import Path, filedir, cwd
 
 
-
 def make_text_file(image_dir):
     """
     makes text_file.txt which contains file_paths to images and the corresponding text:
@@ -29,8 +28,7 @@ def make_text_file(image_dir):
         path to text_file.txt
     """
     # path to image files
-    image_dir = Path("/Users/mosaicchurchhtx/Desktop/ScriptReader/data/parsed", custom=True)
-
+    image_dir = Path(image_dir, custom=True)
 
     # get valid files
     file_list = [
@@ -39,26 +37,22 @@ def make_text_file(image_dir):
         if ((os.path.isfile(image_dir / filename)) and (filename != ".DS_Store"))
     ]
 
-
-
     text_list = []
-
 
     # files names look like randomnum_word_randomnum.jpg
     for file_name in file_list:
         image_text = file_name.split("_")[1]
-        
+
         if "." in image_text:
             image_text = image_text.split(".")[0]
         text_list.append(image_dir / (file_name + r"\t" + image_text + "\n"))
 
-
     text = "".join(text_list)
 
-    with open("text_file.txt", "w") as file_handler:
+    with open(filedir/"text_file.txt", "w") as file_handler:
         file_handler.write(text)
-    
-    return cwd/"text_file.txt"
+
+    return filedir / "text_file.txt"
 
 
 def pickle(data: Any, path: str) -> None:
@@ -75,6 +69,7 @@ def pickle(data: Any, path: str) -> None:
 
     with open(path, "wb") as file_handler:
         pl.dump(data, file_handler)
+
 
 def unpickle(path: str) -> Any:
     """
@@ -109,17 +104,16 @@ def pickle_from_text_file(path: str) -> str:
     custom_alphabet.pkl contains a list of valid characters:
 
     [
-        'a', 'b', 'c', 'd', 'e', 'f', 'g'
+        ' ', 'a', 'b', 'c', ...
     ]
 
     Parameters:
         path: path to text_file.txt
     Returns:
         path to custom_alphabet.pkl
-
     """
     words = []
-    with open(path, 'r') as file_handler:
+    with open(path, "r") as file_handler:
         lines = file_handler.readlines()
         for line in lines:
             url, word = line.split("\\t")
@@ -128,13 +122,12 @@ def pickle_from_text_file(path: str) -> str:
 
     # convert words into a set of characters
     # the set automatically contains one of every item
-    words = set([char for char in (''.join(words))])
+    words = set([char for char in ("".join(words))])
 
-    pickle(list(words), "custom_alphabet.pkl")
+    pickle([' '] + list(words), filedir/"custom_alphabet.pkl")
 
-    return cwd/"custom_alphabet.pkl"
+    return filedir / "custom_alphabet.pkl"
 
-    
 
 if __name__ == "__main__":
     path_to_text_file = make_text_file(config.image_dir)

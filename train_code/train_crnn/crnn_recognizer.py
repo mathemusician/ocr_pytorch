@@ -1,19 +1,21 @@
-import torch.nn as nn
-
-# import torchvision.models as models
-import torch, os
-from PIL import Image
-import cv2
 import torchvision.transforms as transforms
+from pathed import importfile, filedir
 from torch.autograd import Variable
+from PIL import Image
+import torch.nn as nn
 import numpy as np
+import torch, os
 import random
-from .crnn_model_PL import CRNN
+import cv2
 
-try:
-    import config
-except Exception:
-    from train_code.train_crnn import config
+config = importfile(
+    filedir / ".." / "train_crnn" / "config.py"
+)
+
+CRNN = importfile(
+    filedir / ".." / "train_crnn" / "crnn_model_PL.py"
+).CRNN
+
 
 # copy from mydataset
 class resizeNormalize(object):
@@ -130,13 +132,16 @@ class strLabelConverter(object):
 
 # recognize api
 class PytorchOcr:
-    def __init__(self, model_path=config.pretrained_model):
-        alphabet_unicode = config.alphabet
+    def __init__(self, model_path: str=None, alphabet_unicode=None):
+        if model_path == None:
+            model_path=config.pretrained_model
+        if alphabet_unicode == None:
+            alphabet_unicode = config.alphabet
+
         self.alphabet = "".join([chr(uni) for uni in alphabet_unicode])
         # print(len(self.alphabet))
         self.nclass = len(self.alphabet) + 1
-        self.model = CRNN(config, config.imgH, 1, self.nclass, 256)
-        self.cuda = False
+        self.model = CRNN(config)
         self.model.load_state_dict(torch.load(model_path, map_location="cpu"))
         self.model.eval()
         self.converter = strLabelConverter(self.alphabet)
@@ -150,9 +155,6 @@ class PytorchOcr:
         image = transformer(image)
         image = image.view(1, *image.size())
         image = Variable(image)
-
-        if self.cuda:
-            image = image.cuda()
 
         preds = self.model(image)
 

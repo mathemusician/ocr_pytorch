@@ -155,12 +155,14 @@ class strLabelConverter(object):
                 length = [len(s) for s in text]
                 text = "".join(text)
                 text, _ = self.encode(text)
+        
         except KeyError as e:
             # print(text)
             print(e)
             for ch in text:
                 if ord(ch) not in self.dict.keys():
                     print("Not Covering Char: {} - {}".format(ch, ord(ch)))
+        
         return (torch.IntTensor(text), torch.IntTensor(length))
 
     def decode(self, t, length, raw=False):

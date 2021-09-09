@@ -4,13 +4,22 @@ import numpy as np
 from train_code.train_ctpn.ctpn_model_PL import CTPN_Model
 from train_code.train_crnn.crnn_recognizer import PytorchOcr
 import numpy as np
+from pathed import cwd
+import pickle as pkl
 
+
+
+alphabet_list = pkl.load(
+    open(cwd / "train_code" / "train_crnn" / "alphabet.pkl", "rb")
+)
+
+alphabet = [ord(ch) for ch in alphabet_list]
 
 # load model once
 ctpn_model = CTPN_Model()
 ctpn_model.load_checkpoint(eval=True)
 
-recognizer = PytorchOcr()
+recognizer = PytorchOcr(alphabet_unicode=alphabet)
 
 
 def dis(image):
