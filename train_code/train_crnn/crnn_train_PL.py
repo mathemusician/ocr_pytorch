@@ -31,7 +31,7 @@ def train():
     # load checkpoint if it exists
     desktop = filedir / ".." / ".." / ".."
     trainer = pl.Trainer(
-        gpus=0,
+        gpus=config.gpus,
         max_epochs=config.max_epochs,
         log_every_n_steps=1,
         callbacks=[

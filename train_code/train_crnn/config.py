@@ -1,7 +1,9 @@
-from getpaths import getpath
+from pathed import filedir
 import pickle as pkl
 
-alphabet_list = pkl.load(open(getpath() / '..' / 'train_crnn' / "alphabet.pkl", "rb"))
+project_directory = filedir / ".." / ".."
+
+alphabet_list = pkl.load(open(filedir / '..' / 'train_crnn' / "alphabet.pkl", "rb"))
 alphabet = [ord(ch) for ch in alphabet_list]
 
 alphabet = alphabet
@@ -14,19 +16,18 @@ niter = 100
 lr = 0.0003
 beta1 = 0.5
 cuda = True
-ngpu = 1
+gpus = 1
 saved_model_dir = "crnn_models"
 remove_blank = False
 
-project_directory = getpath() / ".." / ".."
 saved_model_prefix = "CRNN-1010"
-train_infofile = [project_directory / "ocr_pytorch" / "text_file.txt"]
+train_infofile = [project_directory / "train_code" / "train_crnn" / "text_file.txt"]
 val_infofile = "path_to_test_infofile.txt"
 keep_ratio = True
 use_log = True
 pretrained_model = project_directory / "checkpoints" / "CRNN-1010.pth"
-batchSize = 9  # make 80 if gpu
-workers = 0  # make 10 if gpu
+batchSize = 20  # make 80 if gpu
+workers = 4  # make 10 if gpu
 adam = True
 
 

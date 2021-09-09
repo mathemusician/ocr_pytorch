@@ -153,11 +153,14 @@ class MyDataset(Dataset):
         self.transform = transform
         self.target_transform = target_transform
         self.info_filename = info_filename
+        
         if isinstance(self.info_filename, str):
             self.info_filename = [self.info_filename]
+        
         self.train = train
         self.files = []
         self.labels = []
+
         for info_name in self.info_filename:
 
             with open(info_name) as f:
