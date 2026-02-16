@@ -1,4 +1,11 @@
 ## lightning_text_detection
+
+### Demo
+
+CTPN detects text regions (green boxes) and CRNN recognizes the text within each region:
+
+![OCR Demo Result](docs/images/test_result.jpg)
+
 > A full PyTorch Lightning rewrite of [courao/ocr.pytorch](https://github.com/courao/ocr.pytorch)
 
 Text detection (CTPN) and text recognition (CRNN) — converted end-to-end from vanilla PyTorch to **PyTorch Lightning**.
@@ -17,12 +24,6 @@ The [original repo](https://github.com/courao/ocr.pytorch) uses hand-rolled trai
 | **CRNN training** | `train_pytorch_ctc.py` (manual loop) | `crnn_train_PL.py` — `pl.Trainer` |
 
 This gives you automatic logging (TensorBoard), checkpointing, multi-GPU support, and cleaner separation of model/data/training logic — all out of the box.
-
-### Demo
-
-CTPN detects text regions (green boxes) and CRNN recognizes the text within each region:
-
-![OCR Demo Result](docs/images/test_result.jpg)
 
 Working on implementing [CRAFT](https://github.com/clovaai/CRAFT-pytorch)
 and [Transformer_STR](https://github.com/opconty/Transformer_STR).
