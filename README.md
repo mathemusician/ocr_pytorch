@@ -1,13 +1,31 @@
 ## lightning_text_detection
-> Applying pytorch-lightning to CTPN and CRNN
-> Code heavily borrowed from [courao](https://github.com/courao/ocr.pytorch)
+> A full PyTorch Lightning rewrite of [courao/ocr.pytorch](https://github.com/courao/ocr.pytorch)
 
-Text detection is based CTPN and text recognition is based CRNN.  
-More detection and recognition methods will be supported!
+Text detection (CTPN) and text recognition (CRNN) — converted end-to-end from vanilla PyTorch to **PyTorch Lightning**.
 
+### What's different from the original?
+
+The [original repo](https://github.com/courao/ocr.pytorch) uses hand-rolled training loops with raw PyTorch. This fork **rewrites both models and data pipelines as PyTorch Lightning modules**:
+
+| Component | Original (courao) | This fork |
+|---|---|---|
+| **CTPN model** | `ctpn_model.py` | `ctpn_model_PL.py` — `pl.LightningModule` |
+| **CTPN data** | inline in train script | `ctpn_data_PL.py` — `pl.LightningDataModule` |
+| **CTPN training** | `ctpn_train.py` (manual loop) | `ctpn_train_PL.py` — `pl.Trainer` |
+| **CRNN model** | `crnn.py` | `crnn_model_PL.py` — `pl.LightningModule` |
+| **CRNN data** | `mydataset.py` | `crnn_data_PL.py` — `pl.LightningDataModule` |
+| **CRNN training** | `train_pytorch_ctc.py` (manual loop) | `crnn_train_PL.py` — `pl.Trainer` |
+
+This gives you automatic logging (TensorBoard), checkpointing, multi-GPU support, and cleaner separation of model/data/training logic — all out of the box.
+
+### Demo
+
+CTPN detects text regions (green boxes) and CRNN recognizes the text within each region:
+
+![OCR Demo Result](docs/images/test_result.jpg)
 
 Working on implementing [CRAFT](https://github.com/clovaai/CRAFT-pytorch)
-And [Transformer_STR](https://github.com/opconty/Transformer_STR)
+and [Transformer_STR](https://github.com/opconty/Transformer_STR).
 
 Pull requests welcome!
 
